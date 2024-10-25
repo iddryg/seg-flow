@@ -209,37 +209,55 @@ class SegmentationPatchTiledImage(SegmentationTiledImage):
         # Return the combined image as a SegmentationImage
         return SegmentationImage(output_image)
 
+    # #previous method
+    #def isolate_center_labels(self):
+    #    """
+    #    For each patch, remove all labels except for the label the patch is centered upon.
+    #    
+    #    Returns:
+    #    - A new SegmentationPatchTiledImage where only the center label remains in each patch.
+    #    """
+    #    # Initialize an empty array for the modified patches
+    #    n_patches = len(self.patch_descriptions)
+    #    bbox_height, bbox_width = self.shape[1:3]  # Assumes patches are of shape (n_patches, height, width)
+    #    
+    #    patches_array = np.zeros((n_patches, bbox_height, bbox_width), dtype=self.dtype)
+    #
+    #    for i, centroid in tqdm(enumerate(self.patch_descriptions),desc="Isolating cells",total=len(self.patch_descriptions)):
+    #        region_label = centroid['region_label']  # The label that should be kept in the current patch
+    #
+    #        # Get the current patch
+    #        patch = self[i]
+    #
+    #        # Zero out all labels in the patch except the region_label
+    #        patches_array[i, :, :] = np.where(patch == region_label, patch, 0)
+    #    
+    #    # Create a new SegmentationPatchTiledImage from the modified patches
+    #    new_instance = self.__class__.from_tiled_array(
+    #        np.array(patches_array, dtype=self.dtype),
+    #        positions=[x['bbox_position'] for x in self.patch_descriptions],
+    #        original_shape=self.original_shape,  # Shape of the full image, excluding patches dimension
+    #        centroid_list=deepcopy(self.patch_descriptions)
+    #    )
+    #    return new_instance
 
     def isolate_center_labels(self):
         """
         For each patch, remove all labels except for the label the patch is centered upon.
         
-        Returns:
-        - A new SegmentationPatchTiledImage where only the center label remains in each patch.
+        Modifies the current SegmentationPatchTiledImage in place.
         """
-        # Initialize an empty array for the modified patches
-        n_patches = len(self.patch_descriptions)
-        bbox_height, bbox_width = self.shape[1:3]  # Assumes patches are of shape (n_patches, height, width)
-        
-        patches_array = np.zeros((n_patches, bbox_height, bbox_width), dtype=self.dtype)
-
-        for i, centroid in tqdm(enumerate(self.patch_descriptions),desc="Isolating cells",total=len(self.patch_descriptions)):
+        # Iterate over each patch and its corresponding description
+        for i, centroid in tqdm(enumerate(self.patch_descriptions), desc="Isolating cells", total=len(self.patch_descriptions)):
             region_label = centroid['region_label']  # The label that should be kept in the current patch
-
+    
             # Get the current patch
             patch = self[i]
-
+    
             # Zero out all labels in the patch except the region_label
-            patches_array[i, :, :] = np.where(patch == region_label, patch, 0)
-        
-        # Create a new SegmentationPatchTiledImage from the modified patches
-        new_instance = self.__class__.from_tiled_array(
-            np.array(patches_array, dtype=self.dtype),
-            positions=[x['bbox_position'] for x in self.patch_descriptions],
-            original_shape=self.original_shape,  # Shape of the full image, excluding patches dimension
-            centroid_list=deepcopy(self.patch_descriptions)
-        )
-        return new_instance
+            self[i] = np.where(patch == region_label, patch, 0)
+    
+        return self
 
     
     def remove_disjointed_pixels(self):
