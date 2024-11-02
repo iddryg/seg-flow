@@ -37,6 +37,13 @@ class SegmentationImage(np.ndarray):
         # Cast the input_array to our new class (SegmentationImage)
         obj = np.asarray(input_array).view(cls)
         obj._centroids_cache = None
+        obj._area_cache = None
+        obj._MinorAxisLength_cache = None
+        obj._MajorAxisLength_cache = None
+        obj._Extent_cache = None
+        obj._Solidity_cache = None
+        obj._Eccentricity_cache = None
+        obj._Orientation_cache = None
         obj._segment_patches_cache = None
         obj._checksum = obj._calculate_checksum()
         return obj
@@ -67,6 +74,13 @@ class SegmentationImage(np.ndarray):
         Invalidate the cached centroids if the array has been modified.
         """
         self._centroids_cache = None
+        self._area_cache = None
+        self._MinorAxisLength_cache = None
+        self._MajorAxisLength_cache = None
+        self._Extent_cache = None
+        self._Solidity_cache = None
+        self._Eccentricity_cache = None
+        self._Orientation_cache = None
 
     def __setitem__(self, key, value):
         """
@@ -80,6 +94,48 @@ class SegmentationImage(np.ndarray):
         if self._centroids_cache is None:
             self._calculate_centroids()
         return self._centroids_cache
+
+    @property
+    def area(self):
+        if self._area_cache is None:
+            self._calculate_area()
+        return self._area_cache
+
+    @property
+    def MinorAxisLength(self):
+        if self._MinorAxisLength_cache is None:
+            self._calculate_MinorAxisLength()
+        return self._MinorAxisLength_cache
+
+    @property
+    def MajorAxisLength(self):
+        if self._MajorAxisLength_cache is None:
+            self._calculate_MajorAxisLength()
+        return self._MajorAxisLength_cache
+
+    @property
+    def Extent(self):
+        if self._Extent_cache is None:
+            self._calculate_Extent()
+        return self._Extent_cache
+
+    @property
+    def Solidity(self):
+        if self._Solidity_cache is None:
+            self._calculate_Solidity()
+        return self._Solidity_cache
+
+    @property
+    def Eccentricity(self):
+        if self._Eccentricity_cache is None:
+            self._calculate_Eccentricity()
+        return self._Eccentricity_cache
+
+    @property
+    def Orientation(self):
+        if self._Orientation_cache is None:
+            self._calculate_Orientation()
+        return self._Orientation_cache
 
     def has_missing_cells(self):
         """
@@ -233,6 +289,244 @@ class SegmentationImage(np.ndarray):
         self._checksum = current_checksum
 
         return centroids
+
+    def _calculate_area(self):
+        """
+        Calculate the pixel area of each labeled region in the segmentation image along with additional metadata.
+        Zero-labeled regions (background) are excluded.
+
+        Returns:
+        - A dictionary where keys are labels (excluding zero) and values are the area,
+        """
+        # Check if cached areas are valid
+        current_checksum = self._calculate_checksum()
+        if (
+            self._area_cache is not None and
+            current_checksum == self._checksum
+        ):
+            return self._area_cache
+
+
+        area = {}
+        regions = regionprops(self)
+
+        for region in tqdm(regions, desc="Calculating Area", unit="region"):
+            if region.label != 0:
+                # sum the number of pixels with the current label to get the area
+                curr_area = np.sum(labeled_image == label)
+
+                # Store metadata
+                area[region.label] = curr_area
+
+        # Cache the area and update the checksum and bbox_size
+        self._area_cache = area
+        self._checksum = current_checksum
+
+        return area
+
+    def _calculate_MajorAxisLength(self):
+        """
+        Calculate the MajorAxisLength of each labeled region in the segmentation image along with additional metadata.
+        Zero-labeled regions (background) are excluded.
+
+        Returns:
+        - A dictionary where keys are labels (excluding zero) and values are the MajorAxisLength,
+        """
+        # Check if cached MajorAxisLengths are valid
+        current_checksum = self._calculate_checksum()
+        if (
+            self._MajorAxisLength_cache is not None and
+            current_checksum == self._checksum
+        ):
+            return self._MajorAxisLength_cache
+
+
+        MajorAxisLength = {}
+        regions = regionprops(self)
+
+        for region in tqdm(regions, desc="Calculating MajorAxisLength", unit="region"):
+            if region.label != 0:
+                # Get the major_axis_length property
+                curr_MajorAxisLength = region.major_axis_length
+
+                # Store metadata
+                MajorAxisLength[region.label] = curr_MajorAxisLength
+
+        # Cache the MajorAxisLength and update the checksum and bbox_size
+        self._MajorAxisLength_cache = MajorAxisLength
+        self._checksum = current_checksum
+
+        return MajorAxisLength
+
+    def _calculate_MinorAxisLength(self):
+        """
+        Calculate the MinorAxisLength of each labeled region in the segmentation image along with additional metadata.
+        Zero-labeled regions (background) are excluded.
+
+        Returns:
+        - A dictionary where keys are labels (excluding zero) and values are the MinorAxisLength,
+        """
+        # Check if cached MinorAxisLengths are valid
+        current_checksum = self._calculate_checksum()
+        if (
+            self._MinorAxisLength_cache is not None and
+            current_checksum == self._checksum
+        ):
+            return self._MinorAxisLength_cache
+
+
+        MinorAxisLength = {}
+        regions = regionprops(self)
+
+        for region in tqdm(regions, desc="Calculating MinorAxisLength", unit="region"):
+            if region.label != 0:
+                # Get the minor_axis_length property
+                curr_MinorAxisLength = region.minor_axis_length
+
+                # Store metadata
+                MinorAxisLength[region.label] = curr_MinorAxisLength
+
+        # Cache the MinorAxisLength and update the checksum and bbox_size
+        self._MinorAxisLength_cache = MinorAxisLength
+        self._checksum = current_checksum
+
+        return MinorAxisLength
+
+    def _calculate_Eccentricity(self):
+        """
+        Calculate the Eccentricity of each labeled region in the segmentation image along with additional metadata.
+        Zero-labeled regions (background) are excluded.
+
+        Returns:
+        - A dictionary where keys are labels (excluding zero) and values are the Eccentricity,
+        """
+        # Check if cached Eccentricities are valid
+        current_checksum = self._calculate_checksum()
+        if (
+            self._Eccentricity_cache is not None and
+            current_checksum == self._checksum
+        ):
+            return self._Eccentricity_cache
+
+
+        Eccentricity = {}
+        regions = regionprops(self)
+
+        for region in tqdm(regions, desc="Calculating Eccentricity", unit="region"):
+            if region.label != 0:
+                # Get the eccentricity property
+                curr_Eccentricity = region.eccentricity
+
+                # Store metadata
+                Eccentricity[region.label] = curr_Eccentricity
+
+        # Cache the Eccentricity and update the checksum and bbox_size
+        self._Eccentricity_cache = Eccentricity
+        self._checksum = current_checksum
+
+        return Eccentricity
+
+    def _calculate_Solidity(self):
+        """
+        Calculate the Solidity of each labeled region in the segmentation image along with additional metadata.
+        Zero-labeled regions (background) are excluded.
+
+        Returns:
+        - A dictionary where keys are labels (excluding zero) and values are the Solidity,
+        """
+        # Check if cached Solidities are valid
+        current_checksum = self._calculate_checksum()
+        if (
+            self._Solidity_cache is not None and
+            current_checksum == self._checksum
+        ):
+            return self._Solidity_cache
+
+
+        Solidity = {}
+        regions = regionprops(self)
+
+        for region in tqdm(regions, desc="Calculating Solidity", unit="region"):
+            if region.label != 0:
+                # Get the solidity property
+                curr_Solidity = region.solidity
+
+                # Store metadata
+                Solidity[region.label] = curr_Solidity
+
+        # Cache the Solidity and update the checksum and bbox_size
+        self._Solidity_cache = Solidity
+        self._checksum = current_checksum
+
+        return Solidity
+
+    def _calculate_Extent(self):
+        """
+        Calculate the Extent of each labeled region in the segmentation image along with additional metadata.
+        Zero-labeled regions (background) are excluded.
+
+        Returns:
+        - A dictionary where keys are labels (excluding zero) and values are the Extent,
+        """
+        # Check if cached Extents are valid
+        current_checksum = self._calculate_checksum()
+        if (
+            self._Extent_cache is not None and
+            current_checksum == self._checksum
+        ):
+            return self._Extent_cache
+
+
+        Extent = {}
+        regions = regionprops(self)
+
+        for region in tqdm(regions, desc="Calculating Extent", unit="region"):
+            if region.label != 0:
+                # Get the extent property
+                curr_Extent = region.extent
+
+                # Store metadata
+                Extent[region.label] = curr_Extent
+
+        # Cache the Extent and update the checksum and bbox_size
+        self._Extent_cache = Extent
+        self._checksum = current_checksum
+
+        return Extent
+
+    def _calculate_Orientation(self):
+        """
+        Calculate the Orientation of each labeled region in the segmentation image along with additional metadata.
+        Zero-labeled regions (background) are excluded.
+
+        Returns:
+        - A dictionary where keys are labels (excluding zero) and values are the Orientation,
+        """
+        # Check if cached Orientations are valid
+        current_checksum = self._calculate_checksum()
+        if (
+            self._Orientation_cache is not None and
+            current_checksum == self._checksum
+        ):
+            return self._Orientation_cache
+
+
+        Orientation = {}
+        regions = regionprops(self)
+
+        for region in tqdm(regions, desc="Calculating Orientation", unit="region"):
+            if region.label != 0:
+                # Get the orientation property
+                curr_Orientation = region.orientation
+
+                # Store metadata
+                Orientation[region.label] = curr_Orientation
+
+        # Cache the Orientation and update the checksum and bbox_size
+        self._Orientation_cache = Orientation
+        self._checksum = current_checksum
+
+        return Orientation
 
     def apply_binary_mask(self, binary_mask, method):
         """
