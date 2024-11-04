@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seg-flow"
-version = "0.1.1"
+version = "0.1.2"
 description = "A flexible tool for membrane and nuclear image segmentation using tile-based workflow."
 authors = [
-    { name="Jason L Weirather", email="jason.weirather@gmail.com" }
+    { name="Ian Dryg", email="iddryg@gmail.com" }
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
