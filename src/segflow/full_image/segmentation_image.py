@@ -313,7 +313,7 @@ class SegmentationImage(np.ndarray):
         for region in tqdm(regions, desc="Calculating Area", unit="region"):
             if region.label != 0:
                 # sum the number of pixels with the current label to get the area
-                curr_area = np.sum(labeled_image == label)
+                curr_area = region.area
 
                 # Store metadata
                 area[region.label] = curr_area
