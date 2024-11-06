@@ -46,6 +46,15 @@ class SegmentationPatchTiledImage(SegmentationTiledImage):
 
         # Start from the input image's centroid property
         centroids = input_image.centroids
+        
+        # get all the other properties too
+        areas = input_image.area
+        minor_axis_lengths = input_image.minor_axis_length
+        major_axis_lengths = input_image.major_axis_length
+        extents = input_image.extent
+        solidities = input_image.solidity
+        eccentricities = input_image.eccentricity
+        orientations = input_image.orientation
 
         bbox_height, bbox_width = bbox_size
         half_height = bbox_height // 2
@@ -105,7 +114,14 @@ class SegmentationPatchTiledImage(SegmentationTiledImage):
                 'centroid': (centroid_y, centroid_x),
                 'region_label': region_label,
                 'bbox_position': (y_min, x_min),
-                'on_edge': on_edge
+                'on_edge': on_edge,
+                'area': areas[region_label],
+                'minor_axis_length': minor_axis_lengths[region_label],
+                'major_axis_length': major_axis_lengths[region_label],
+                'eccentricity': eccentricities[region_label],
+                'solidity': solidities[region_label],
+                'extent': extents[region_label],
+                'orientation': orientations[region_label]
             })
 
         # Call the base class method to create the tiled image

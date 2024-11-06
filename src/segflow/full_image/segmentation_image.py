@@ -38,12 +38,12 @@ class SegmentationImage(np.ndarray):
         obj = np.asarray(input_array).view(cls)
         obj._centroids_cache = None
         obj._area_cache = None
-        obj._MinorAxisLength_cache = None
-        obj._MajorAxisLength_cache = None
-        obj._Extent_cache = None
-        obj._Solidity_cache = None
-        obj._Eccentricity_cache = None
-        obj._Orientation_cache = None
+        obj._minor_axis_length_cache = None
+        obj._major_axis_length_cache = None
+        obj._extent_cache = None
+        obj._solidity_cache = None
+        obj._eccentricity_cache = None
+        obj._orientation_cache = None
         obj._segment_patches_cache = None
         obj._checksum = obj._calculate_checksum()
         return obj
@@ -75,12 +75,12 @@ class SegmentationImage(np.ndarray):
         """
         self._centroids_cache = None
         self._area_cache = None
-        self._MinorAxisLength_cache = None
-        self._MajorAxisLength_cache = None
-        self._Extent_cache = None
-        self._Solidity_cache = None
-        self._Eccentricity_cache = None
-        self._Orientation_cache = None
+        self._minor_axis_length_cache = None
+        self._major_axis_length_cache = None
+        self._extent_cache = None
+        self._solidity_cache = None
+        self._eccentricity_cache = None
+        self._orientation_cache = None
 
     def __setitem__(self, key, value):
         """
@@ -102,40 +102,40 @@ class SegmentationImage(np.ndarray):
         return self._area_cache
 
     @property
-    def MinorAxisLength(self):
-        if self._MinorAxisLength_cache is None:
-            self._calculate_MinorAxisLength()
-        return self._MinorAxisLength_cache
+    def minor_axis_length(self):
+        if self._minor_axis_length_cache is None:
+            self._calculate_minor_axis_length()
+        return self._minor_axis_length_cache
 
     @property
-    def MajorAxisLength(self):
-        if self._MajorAxisLength_cache is None:
-            self._calculate_MajorAxisLength()
-        return self._MajorAxisLength_cache
+    def major_axis_length(self):
+        if self._major_axis_length_cache is None:
+            self._calculate_major_axis_length()
+        return self._major_axis_length_cache
 
     @property
-    def Extent(self):
-        if self._Extent_cache is None:
-            self._calculate_Extent()
-        return self._Extent_cache
+    def extent(self):
+        if self._extent_cache is None:
+            self._calculate_extent()
+        return self._extent_cache
 
     @property
-    def Solidity(self):
-        if self._Solidity_cache is None:
-            self._calculate_Solidity()
-        return self._Solidity_cache
+    def solidity(self):
+        if self._solidity_cache is None:
+            self._calculate_solidity()
+        return self._solidity_cache
 
     @property
-    def Eccentricity(self):
-        if self._Eccentricity_cache is None:
-            self._calculate_Eccentricity()
-        return self._Eccentricity_cache
+    def eccentricity(self):
+        if self._eccentricity_cache is None:
+            self._calculate_eccentricity()
+        return self._eccentricity_cache
 
     @property
-    def Orientation(self):
-        if self._Orientation_cache is None:
-            self._calculate_Orientation()
-        return self._Orientation_cache
+    def orientation(self):
+        if self._orientation_cache is None:
+            self._calculate_orientation()
+        return self._orientation_cache
 
     def has_missing_cells(self):
         """
@@ -324,7 +324,7 @@ class SegmentationImage(np.ndarray):
 
         return area
 
-    def _calculate_MajorAxisLength(self):
+    def _calculate_major_axis_length(self):
         """
         Calculate the MajorAxisLength of each labeled region in the segmentation image along with additional metadata.
         Zero-labeled regions (background) are excluded.
@@ -335,30 +335,30 @@ class SegmentationImage(np.ndarray):
         # Check if cached MajorAxisLengths are valid
         current_checksum = self._calculate_checksum()
         if (
-            self._MajorAxisLength_cache is not None and
+            self._major_axis_length_cache is not None and
             current_checksum == self._checksum
         ):
-            return self._MajorAxisLength_cache
+            return self._major_axis_length_cache
 
 
-        MajorAxisLength = {}
+        major_axis_length = {}
         regions = regionprops(self)
 
         for region in tqdm(regions, desc="Calculating MajorAxisLength", unit="region"):
             if region.label != 0:
                 # Get the major_axis_length property
-                curr_MajorAxisLength = region.major_axis_length
+                curr_major_axis_length = region.major_axis_length
 
                 # Store metadata
-                MajorAxisLength[region.label] = curr_MajorAxisLength
+                major_axis_length[region.label] = curr_major_axis_length
 
         # Cache the MajorAxisLength and update the checksum and bbox_size
-        self._MajorAxisLength_cache = MajorAxisLength
+        self._major_axis_length_cache = major_axis_length
         self._checksum = current_checksum
 
-        return MajorAxisLength
+        return major_axis_length
 
-    def _calculate_MinorAxisLength(self):
+    def _calculate_minor_axis_length(self):
         """
         Calculate the MinorAxisLength of each labeled region in the segmentation image along with additional metadata.
         Zero-labeled regions (background) are excluded.
@@ -369,30 +369,30 @@ class SegmentationImage(np.ndarray):
         # Check if cached MinorAxisLengths are valid
         current_checksum = self._calculate_checksum()
         if (
-            self._MinorAxisLength_cache is not None and
+            self._minor_axis_length_cache is not None and
             current_checksum == self._checksum
         ):
-            return self._MinorAxisLength_cache
+            return self._minor_axis_length_cache
 
 
-        MinorAxisLength = {}
+        minor_axis_length = {}
         regions = regionprops(self)
 
         for region in tqdm(regions, desc="Calculating MinorAxisLength", unit="region"):
             if region.label != 0:
                 # Get the minor_axis_length property
-                curr_MinorAxisLength = region.minor_axis_length
+                curr_minor_axis_length = region.minor_axis_length
 
                 # Store metadata
-                MinorAxisLength[region.label] = curr_MinorAxisLength
+                minor_axis_length[region.label] = curr_minor_axis_length
 
         # Cache the MinorAxisLength and update the checksum and bbox_size
-        self._MinorAxisLength_cache = MinorAxisLength
+        self._minor_axis_length_cache = minor_axis_length
         self._checksum = current_checksum
 
-        return MinorAxisLength
+        return minor_axis_length
 
-    def _calculate_Eccentricity(self):
+    def _calculate_eccentricity(self):
         """
         Calculate the Eccentricity of each labeled region in the segmentation image along with additional metadata.
         Zero-labeled regions (background) are excluded.
@@ -403,30 +403,30 @@ class SegmentationImage(np.ndarray):
         # Check if cached Eccentricities are valid
         current_checksum = self._calculate_checksum()
         if (
-            self._Eccentricity_cache is not None and
+            self._eccentricity_cache is not None and
             current_checksum == self._checksum
         ):
-            return self._Eccentricity_cache
+            return self._eccentricity_cache
 
 
-        Eccentricity = {}
+        eccentricity = {}
         regions = regionprops(self)
 
         for region in tqdm(regions, desc="Calculating Eccentricity", unit="region"):
             if region.label != 0:
                 # Get the eccentricity property
-                curr_Eccentricity = region.eccentricity
+                curr_eccentricity = region.eccentricity
 
                 # Store metadata
-                Eccentricity[region.label] = curr_Eccentricity
+                eccentricity[region.label] = curr_eccentricity
 
         # Cache the Eccentricity and update the checksum and bbox_size
-        self._Eccentricity_cache = Eccentricity
+        self._eccentricity_cache = eccentricity
         self._checksum = current_checksum
 
-        return Eccentricity
+        return eccentricity
 
-    def _calculate_Solidity(self):
+    def _calculate_solidity(self):
         """
         Calculate the Solidity of each labeled region in the segmentation image along with additional metadata.
         Zero-labeled regions (background) are excluded.
@@ -437,30 +437,30 @@ class SegmentationImage(np.ndarray):
         # Check if cached Solidities are valid
         current_checksum = self._calculate_checksum()
         if (
-            self._Solidity_cache is not None and
+            self._solidity_cache is not None and
             current_checksum == self._checksum
         ):
-            return self._Solidity_cache
+            return self._solidity_cache
 
 
-        Solidity = {}
+        solidity = {}
         regions = regionprops(self)
 
         for region in tqdm(regions, desc="Calculating Solidity", unit="region"):
             if region.label != 0:
                 # Get the solidity property
-                curr_Solidity = region.solidity
+                curr_solidity = region.solidity
 
                 # Store metadata
-                Solidity[region.label] = curr_Solidity
+                solidity[region.label] = curr_solidity
 
         # Cache the Solidity and update the checksum and bbox_size
-        self._Solidity_cache = Solidity
+        self._solidity_cache = solidity
         self._checksum = current_checksum
 
-        return Solidity
+        return solidity
 
-    def _calculate_Extent(self):
+    def _calculate_extent(self):
         """
         Calculate the Extent of each labeled region in the segmentation image along with additional metadata.
         Zero-labeled regions (background) are excluded.
@@ -471,30 +471,30 @@ class SegmentationImage(np.ndarray):
         # Check if cached Extents are valid
         current_checksum = self._calculate_checksum()
         if (
-            self._Extent_cache is not None and
+            self._extent_cache is not None and
             current_checksum == self._checksum
         ):
-            return self._Extent_cache
+            return self._extent_cache
 
 
-        Extent = {}
+        extent = {}
         regions = regionprops(self)
 
         for region in tqdm(regions, desc="Calculating Extent", unit="region"):
             if region.label != 0:
                 # Get the extent property
-                curr_Extent = region.extent
+                curr_extent = region.extent
 
                 # Store metadata
-                Extent[region.label] = curr_Extent
+                extent[region.label] = curr_extent
 
         # Cache the Extent and update the checksum and bbox_size
-        self._Extent_cache = Extent
+        self._extent_cache = extent
         self._checksum = current_checksum
 
-        return Extent
+        return extent
 
-    def _calculate_Orientation(self):
+    def _calculate_orientation(self):
         """
         Calculate the Orientation of each labeled region in the segmentation image along with additional metadata.
         Zero-labeled regions (background) are excluded.
@@ -505,28 +505,28 @@ class SegmentationImage(np.ndarray):
         # Check if cached Orientations are valid
         current_checksum = self._calculate_checksum()
         if (
-            self._Orientation_cache is not None and
+            self._orientation_cache is not None and
             current_checksum == self._checksum
         ):
-            return self._Orientation_cache
+            return self._orientation_cache
 
 
-        Orientation = {}
+        orientation = {}
         regions = regionprops(self)
 
         for region in tqdm(regions, desc="Calculating Orientation", unit="region"):
             if region.label != 0:
                 # Get the orientation property
-                curr_Orientation = region.orientation
+                curr_orientation = region.orientation
 
                 # Store metadata
-                Orientation[region.label] = curr_Orientation
+                orientation[region.label] = curr_orientation
 
         # Cache the Orientation and update the checksum and bbox_size
-        self._Orientation_cache = Orientation
+        self._orientation_cache = orientation
         self._checksum = current_checksum
 
-        return Orientation
+        return orientation
 
     def apply_binary_mask(self, binary_mask, method):
         """
